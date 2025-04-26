@@ -1,17 +1,37 @@
 import os
 import telebot
+import requests
 from telebot import types
 import json
 import yt_dlp
+from telebot import apihelper
+
 from download_and_send_video import  get_available_resolutions, ask_for_resolution, download_video
 from storage_for_links import load_data
 
 data = load_data()
 bot_data = {}
 
-BOT_TOKEN = os.environ.get('BOT_TOKEN')
+from dotenv import load_dotenv
+load_dotenv()
+BOT_TOKEN = os.getenv('BOT_TOKEN')
 
-bot = telebot.TeleBot(BOT_TOKEN)
+# # В main.py замените:
+# apihelper.proxy = {'https': 'socks5://127.0.0.1:5454'}
+
+
+# session = requests.Session()
+# session.proxies = {
+#     'http': 'socks5://127.0.0.1:5454',
+#     'https': 'socks5://127.0.0.1:5454'
+# }
+
+bot = telebot.TeleBot(
+    BOT_TOKEN, 
+    # timeout=60,
+    # threaded=True,
+    # num_threads=5
+)
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
@@ -93,9 +113,15 @@ def video_request(message):
             format_spec = f"bestvideo[height<={res}]+bestaudio/best[height<={res}]"
             ydl_opts = {
             'format': format_spec,
+            'socket_timeout': 30,
+            'force_ipv4': True,
+            'verbose': True,
+            'cookiefile': 'cookies.txt',
             'outtmpl': '%(title)s.%(ext)s',
             'merge_output_format': 'mp4',   
-            'cookiesfrombrowser': ('chrome',),
+            # 'cookiesfrombrowser': ('chrome',),
+            'cookiesfrombrowser': ('firefox',),
+            # 'proxy': 'socks5://127.0.0.1:5454',
             'verbose': True,  # Show detailed logs
             'ignoreerrors': False   
             }
