@@ -3,10 +3,12 @@ import telebot
 from telebot import types
 import json
 import yt_dlp
-from download_and_send_video import  get_available_resolutions, ask_for_resolution, download_video
+from download_video import  download_video
 from storage_for_links import load_data
+from storage_for_resolutions_and_sizes import load_resolution_data
 
 data = load_data()
+resolution_data = load_resolution_data()
 bot_data = {}
 
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
@@ -85,19 +87,28 @@ def video_request(message):
                         break
         
         topic = selected_topic
-        resolutions = get_available_resolutions(url)
+        ''' resolutions = get_available_resolutions(url)
         
         # Get file sizes for each resolution
         resolutions_with_sizes = []
         for res in resolutions[:3]:  # Show top 3 resolutions max
             format_spec = f"bestvideo[height<={res}]+bestaudio/best[height<={res}]"
+           
             ydl_opts = {
             'format': format_spec,
             'outtmpl': '%(title)s.%(ext)s',
-            'merge_output_format': 'mp4',   
-            'cookiesfrombrowser': ('chrome',),
-            'verbose': True,  # Show detailed logs
-            'ignoreerrors': False   
+            'merge_output_format': 'mp4',
+            'quiet': True,
+            'noplaylist': True,
+            'socket_timeout': 30,
+            # These options help bypass restrictions
+            'geo_bypass': True,
+            'geo_bypass_country': 'US',
+            'extractor_args': {
+                'youtube': {
+                    'skip': ['dash', 'hls']
+                    }
+                }
             }
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(url, download=False)
@@ -110,8 +121,14 @@ def video_request(message):
                 audio_size = audio_stream.get('filesize', 0) if audio_stream else 0
 
                 total_size_mb = (video_size + audio_size) / (1024 * 1024)
-                resolutions_with_sizes.append((res, total_size_mb))
+                resolutions_with_sizes.append((res, total_size_mb))'''
         
+        resolutions_with_sizes = []
+        for i in resolution_data[selected_course][selected_term][selected_subject][selected_topic]:
+            resolution = i["resolution"]
+            file_size = i["filesize_mb"]
+            resolutions_with_sizes.append((resolution, file_size))
+
         markup = types.InlineKeyboardMarkup()
         for res, size_mb in resolutions_with_sizes:
             if size_mb == 0:
@@ -159,21 +176,23 @@ def send_video_file(call):
         term = bot_data[user_id]['term']
         subject = bot_data[user_id]['subject']
         topic = bot_data[user_id]['topic']
-        
+    
         caption = (f"📚 *Course:* {course}\n"
                   f"📅 *Term:* {term}\n"
                   f"🧑‍🏫 *Subject:* {subject}\n"
                   f"📹 *Topic:* {topic}\n"
-                  f"🖥 *Quality:* {resolution}\n")
-        
+                  f"🖥 *Quality:* {resolution}\n")  
+
+        bot.send_message(call.message.chat.id, f"Uploading file ({file_size_mb:.1f} MB)... Please wait.")        
+
         if file_size_mb <= 50:
             with open(video_path, 'rb') as f:
-                bot.send_video(call.message.chat.id, f, caption=caption, parse_mode='Markdown')
+                bot.send_video(call.message.chat.id, f, caption=caption, parse_mode='Markdown', timeout=600)
         elif file_size_mb <= 2000:
             with open(video_path, 'rb') as f:
-                bot.send_document(call.message.chat.id, f, caption=caption, parse_mode='Markdown')
+                bot.send_video(call.message.chat.id, f, caption=caption, parse_mode='Markdown', timeout=600)
         else:
-            bot.send_message(call.message.chat.id, "File size exceeds Telegram's 2GB limit.")
+            bot.send_video(call.message.chat.id, "File size exceeds Telegram's 2GB limit.")
     
         os.remove(video_path)    
     
