@@ -9,11 +9,10 @@ CACHE_FILE = "playlists_data.json"
 
 def extract_subject_lecturer(playlist_title):
     """Extracts subject name from titles like 'Математика (1 курс, осень 2023)'"""
-    subject = re.match(r'^[^(]*', playlist_title).group()
-    lecturer = re.search(r'-(.*)', playlist_title).group(1)
-    result = f"{subject}({lecturer})"
-    return result
-    
+    subject = re.match(r'^[^(]*', playlist_title).group().strip()
+    lecturer_match = re.search(r'-(.*)', playlist_title)
+    lecturer = lecturer_match.group(1).strip() if lecturer_match else ""
+    return f"{subject}({lecturer})"    
 
 def scrape_playlists():
     ydl_opts = {

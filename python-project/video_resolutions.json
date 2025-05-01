@@ -4,11 +4,12 @@
       "[АиСД] Алгоритмы и структуры данных / основной поток ( Степанов И.Д.)": {
         "3. Динамическое программирование на маске, NP-трудные задачи": [
           {
-            "resolution": 1080,
-            "filesize_mb": 1268.97,
+            "resolution": 720,
+            "filesize_mb": 10.5,
             "video_url": "https://rr5---sn-5hne6n6l.googlevideo.com/videoplayback?expire=1745685923&ei=Q7kMaLzQOKeC6dsPwIXYuA4&ip=2001%3Aac8%3A31%3A4294%3A36cb%3A10ab%3Ab114%3Ad&id=o-AF1Hj70mXPtBAzGEsVDrAKtuZbEX3D9_7Haj0BtGmYMx&itag=137&aitags=134%2C136%2C137%2C160%2C243&source=youtube&requiressl=yes&xpc=EgVo2aDSNQ%3D%3D&met=1745664323%2C&mh=T3&mm=31%2C26&mn=sn-5hne6n6l%2Csn-4g5lznlz&ms=au%2Conr&mv=m&mvi=5&pl=49&rms=au%2Cau&initcwndbps=950000&siu=1&bui=AecWEAbg3Gl0YUoIsEpfjGR3w-CqGykb7-Edn_jQqrfTxTPzR1oN_-qO8pKbbFuPBkmCZIHQYQ&vprv=1&svpuc=1&mime=video%2Fmp4&ns=tPBg0sF1fumBsJIkXgSQpC8Q&rqh=1&gir=yes&clen=1255794725&dur=4622.680&lmt=1708656563345319&mt=1745663815&fvip=2&keepalive=yes&lmw=1&c=TVHTML5&sefc=1&txp=6219224&n=g19w0VCw4ekTMA&sparams=expire%2Cei%2Cip%2Cid%2Caitags%2Csource%2Crequiressl%2Cxpc%2Csiu%2Cbui%2Cvprv%2Csvpuc%2Cmime%2Cns%2Crqh%2Cgir%2Cclen%2Cdur%2Clmt&sig=AJfQdSswRQIhAJKdNUc5n1h-Q6JAAjm_lW1WTzdulF7laglnx5GYlFBvAiAPWxWFT3WGnooXmIcouQ4UwAy7HMaNjLErlNz3rhP5EA%3D%3D&lsparams=met%2Cmh%2Cmm%2Cmn%2Cms%2Cmv%2Cmvi%2Cpl%2Crms%2Cinitcwndbps&lsig=ACuhMU0wRgIhANdyV2ph8bN23mjPGa5D2tla1VoUg4QOzy-uLPTYlMLdAiEAnw_ZD8J1Fm2OPYhu24XaZcrdOAKeEUi4SJ4mxwixkWU%3D",
             "audio_url": "https://rr5---sn-5hne6n6l.googlevideo.com/videoplayback?expire=1745685923&ei=Q7kMaLzQOKeC6dsPwIXYuA4&ip=2001%3Aac8%3A31%3A4294%3A36cb%3A10ab%3Ab114%3Ad&id=o-AF1Hj70mXPtBAzGEsVDrAKtuZbEX3D9_7Haj0BtGmYMx&itag=140&source=youtube&requiressl=yes&xpc=EgVo2aDSNQ%3D%3D&met=1745664323%2C&mh=T3&mm=31%2C26&mn=sn-5hne6n6l%2Csn-4g5lznlz&ms=au%2Conr&mv=m&mvi=5&pl=49&rms=au%2Cau&initcwndbps=950000&siu=1&bui=AecWEAbg3Gl0YUoIsEpfjGR3w-CqGykb7-Edn_jQqrfTxTPzR1oN_-qO8pKbbFuPBkmCZIHQYQ&vprv=1&svpuc=1&mime=audio%2Fmp4&ns=tPBg0sF1fumBsJIkXgSQpC8Q&rqh=1&gir=yes&clen=74814626&dur=4622.744&lmt=1708656644879091&mt=1745663815&fvip=2&keepalive=yes&lmw=1&c=TVHTML5&sefc=1&txp=6218224&n=g19w0VCw4ekTMA&sparams=expire%2Cei%2Cip%2Cid%2Citag%2Csource%2Crequiressl%2Cxpc%2Csiu%2Cbui%2Cvprv%2Csvpuc%2Cmime%2Cns%2Crqh%2Cgir%2Cclen%2Cdur%2Clmt&sig=AJfQdSswRgIhAN01svrMcs4nG_KbfjAj9GJVjYcBCER-eVx3EUjeNoWfAiEAvfFL0d33EhIF7seW2rzWRwl8EIMAfrluOYarjrdeQts%3D&lsparams=met%2Cmh%2Cmm%2Cmn%2Cms%2Cmv%2Cmvi%2Cpl%2Crms%2Cinitcwndbps&lsig=ACuhMU0wRgIhANdyV2ph8bN23mjPGa5D2tla1VoUg4QOzy-uLPTYlMLdAiEAnw_ZD8J1Fm2OPYhu24XaZcrdOAKeEUi4SJ4mxwixkWU%3D",
-            "ext": "mp4"
+            "ext": "mp4",
+            "cloud_url": "https://mock.yandex.url"
           },
           {
             "resolution": 720,
