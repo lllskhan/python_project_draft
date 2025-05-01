@@ -18,9 +18,13 @@ def upload_to_yandex(video_path):
         config=Config(signature_version='s3v4'),
         region_name=YANDEX_REGION
     )
+   
+    try:
+        object_name = os.path.basename(video_path)
+        s3.upload_file(video_path, YANDEX_BUCKET_NAME, object_name, ExtraArgs={'ACL': 'public-read'})
 
-    object_name = os.path.basename(video_path)
-    s3.upload_file(video_path, YANDEX_BUCKET_NAME, object_name, ExtraArgs={'ACL': 'public-read'})
-
-    public_url = f"{YANDEX_ENDPOINT}/{YANDEX_BUCKET_NAME}/{object_name}"
-    return public_url
+        public_url = f"{YANDEX_ENDPOINT}/{YANDEX_BUCKET_NAME}/{object_name}"
+        return public_url
+    except Exception as e:
+        print(f"Ошибка загрузки в облако: {e}")
+        return None
