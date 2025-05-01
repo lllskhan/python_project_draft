@@ -7,5 +7,5 @@ for course, semesters in data.items():
             for subject, videos in subjects.items():
                 for video_title, formats in videos.items():
                     for fmt in formats:
-                        if fmt["filesize_mb"] < 50:
+                        if fmt["filesize_mb"] < 30:
                             print(video_title, subject)
