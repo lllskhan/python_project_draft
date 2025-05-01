@@ -13,7 +13,7 @@
 
 ### 1. Установка зависимостей
 ```bash
-pip install yt-dlp pyTelegramBotAPI python-dotenv boto3
+pip install -r requiremnts.txt
 ```
 
 ### 2. Запуск бота
@@ -80,4 +80,4 @@ python main.py
 
 ## ⚠️ Требования
 
-- Python 3.10+
+- requiremnts.txt
