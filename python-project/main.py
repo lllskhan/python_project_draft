@@ -1,49 +1,39 @@
 import os
-import asyncio
-import telebot.async_telebot as async_telebot
+import telebot
 from telebot import types
-from telebot import asyncio_helper
-from telebot.asyncio_helper import ApiTelegramException
-from download_video import download_video, send_telegram_video
+from download_video import download_video
+from yandex_upload import upload_to_yandex
 from storage_for_links import load_data
-from storage_for_resolutions_and_sizes import load_resolution_data
+from storage_for_resolutions_and_sizes import load_resolution_data, save_resolution_data
 
 data = load_data()
 resolution_data = load_resolution_data()
 bot_data = {}
 
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
-bot = async_telebot.AsyncTeleBot(BOT_TOKEN)
-
-# Настройка локального Bot API
-bot.api_base_url = 'http://localhost:8081/bot{0}/{1}'
-bot.file_base_url = 'http://localhost:8081/file/bot{0}/{1}'
-
-# Увеличиваем таймауты для работы с большими файлами
-asyncio_helper.READ_TIMEOUT = 60
-asyncio_helper.CONNECT_TIMEOUT = 60
+bot = telebot.TeleBot(BOT_TOKEN)
 
 @bot.message_handler(commands=['start'])
-async def send_welcome(message):
-	await bot.reply_to(message, "Welcome! The bot is ready to present you relevant lecture.")
+def send_welcome(message):
+	bot.reply_to(message, "Welcome! The bot is ready to present you relevant lecture.")
 
 @bot.message_handler(commands=['lecture'])
-async def ask_for_course(message):
+def ask_for_course(message):
     markup = types.ReplyKeyboardMarkup(one_time_keyboard=True)
     for course in data.keys():
         markup.add(course)
-    await bot.send_message(message.chat.id, "Select a course:", reply_markup=markup)
+    bot.send_message(message.chat.id, "Select a course:", reply_markup=markup)
 
 @bot.message_handler(func=lambda m: m.text in data.keys())
-async def ask_for_term(message):
+def ask_for_term(message):
     selected_course = message.text
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
     for term in data[selected_course].keys():
         markup.add(term)
-    await bot.send_message(message.chat.id, f"Selected: {selected_course}\nChoose term:", reply_markup=markup)
+    bot.send_message(message.chat.id, f"Selected: {selected_course}\nChoose term:", reply_markup=markup)
 
 @bot.message_handler(func=lambda m: any(m.text in data[course] for course in data))
-async def ask_for_subject(message):
+def ask_for_subject(message):
     # Find which course this term belongs to
     for course in data:
         if message.text in data[course]:
@@ -54,12 +44,12 @@ async def ask_for_subject(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
     for subject in data[selected_course][selected_term].keys():
         markup.add(subject)
-    await bot.send_message(message.chat.id, f"Selected: {selected_course} - {selected_term}\nChoose subject:", reply_markup=markup)
+    bot.send_message(message.chat.id, f"Selected: {selected_course} - {selected_term}\nChoose subject:", reply_markup=markup)
 
 @bot.message_handler(func=lambda m: any(m.text in data[course][term] 
                                      for course in data 
                                      for term in data[course]))
-async def ask_for_title(message):
+def ask_for_title(message):
     # Find which course and term this subject belongs to
     for course in data:
         for term in data[course]:
@@ -72,7 +62,7 @@ async def ask_for_title(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
     for topic in data[selected_course][selected_term][selected_subject].keys():
         markup.add(topic)
-    await bot.send_message(message.chat.id, 
+    bot.send_message(message.chat.id, 
                     f"Selected: {selected_course} - {selected_term}  - {selected_subject}\nChoose topic:", 
                     reply_markup=markup)
 
@@ -80,7 +70,7 @@ async def ask_for_title(message):
                                       for course in data 
                                       for term in data[course] 
                                       for subject in data[course][term]))
-async def video_request(message):
+def video_request(message):
     try:
         # Find which course, term and subject this topic belongs to
         for course in data:
@@ -120,96 +110,72 @@ async def video_request(message):
             'topic': selected_topic
         }
         
-        await bot.send_message(message.chat.id, f"📹 {topic}", reply_markup=markup)
+        bot.send_message(message.chat.id, f"📹 {topic}", reply_markup=markup)
             
     
     except Exception as e:
         bot.reply_to(message, f"❌ Error: {str(e)}")
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('dl_'))
-async def handle_video_request(call):
+def handle_video_request(call):
     try:
         user_id = call.from_user.id
         context = bot_data.get(user_id, {})
-        
         if not context:
-            await bot.answer_callback_query(call.id, "Session expired!")
+            bot.answer_callback_query(call.id, "Истекло время ожидания сессии!")
             return
-        
+
         resolution = int(call.data.split('_')[1])
-        url = context['url']      
-        format_spec = f"best[height<={resolution}][filesize<1900M]"
+        url = context['url']
+        topic = context['topic']
 
-        await bot.answer_callback_query(call.id, "⏳ Скачивание видео...")
-        
-        # Then send progress message
-        progress_message = await bot.send_message(call.message.chat.id, "⌛ Download progress: 0%")
-        
-        last_update = 0
-        def progress_callback(downloaded, total, speed, eta):
-            nonlocal last_update
-            current_time = time.time()
-            if current_time - last_update > 1:  # Update every 1 second
-                percent = (downloaded / total) * 100 if total > 0 else 0
-                asyncio.create_task(
-                    bot.edit_message_text(
-                        f"⌛ Download progress: {percent:.1f}%\n"
-                        f"📊 {downloaded/(1024*1024):.1f}MB / {total/(1024*1024):.1f}MB\n"
-                        f"⚡ Speed: {speed/(1024*1024):.1f}MB/s\n"
-                        f"⏱ ETA: {eta}s",
-                        chat_id=progress_message.chat.id,
-                        message_id=progress_message.message_id
-                    )
-                )
-                last_update = current_time
-        
+        resolutions = resolution_data[context['course']][context['term']][context['subject']][context['topic']]
+        selected_res = next((r for r in resolutions if r["resolution"] == resolution), None)
 
-        # 1. Скачивание
-        try:
-            video_path = await asyncio.to_thread(
-                download_video, 
-                url, 
-                f"best[height<={resolution}]",
-                progress_callback
+        if not selected_res:
+            bot.answer_callback_query(call.id, "❌ Ошибка: разрешение не найдено")
+            return
+
+        # Если видео уже есть в облаке — сразу отправляем ссылку
+        if selected_res.get("cloud_url"):
+            bot.send_message(
+                call.message.chat.id,
+                f"🎥 **{topic}** ({resolution}p)\n[Скачать лекцию/семинар]({selected_res['cloud_url']})",
+                parse_mode="Markdown",
+                disable_web_page_preview=False
             )
-            
-            await bot.edit_message_text(
-                "📤 Uploading to Telegram...",
-                chat_id=progress_message.chat.id,
-                message_id=progress_message.message_id
-            )
-            
-            caption = f"📹 {context['topic']} ({resolution}p)"
-            result = await send_telegram_video(bot, call.message.chat.id, video_path, caption)
-            
-            if result is True:
-                await bot.delete_message(
-                    chat_id=progress_message.chat.id,
-                    message_id=progress_message.message_id
-                )
-            else:
-                await bot.edit_message_text(
-                    f"❌ {result}",
-                    chat_id=progress_message.chat.id,
-                    message_id=progress_message.message_id
-                )
-                
-        except Exception as e:
-            await bot.edit_message_text(
-                f"❌ Download failed: {str(e)}",
-                chat_id=progress_message.chat.id,
-                message_id=progress_message.message_id
-            )
-            
+            bot.answer_callback_query(call.id, "✅ Ссылка отправлена!")
+            return
+
+        bot.answer_callback_query(call.id, "⏳ Началась загрузка видео...")
+        progress_message = bot.send_message(call.message.chat.id, "⌛ Продолжается загрузка видео...")
+
+        video_path = download_video(url, f"best[height<={resolution}]")
+        
+        bot.edit_message_text(
+            "📤 Выгружаю на Облако...",
+            chat_id=progress_message.chat.id,
+            message_id=progress_message.message_id
+        )
+
+        public_url = upload_to_yandex(video_path)
+        
+        selected_res["cloud_url"] = public_url
+        save_resolution_data(resolution_data)
+
+        bot.edit_message_text(
+            f"✅ Завершено! [Скачать лекцию/семинар]({public_url})",
+            chat_id=progress_message.chat.id,
+            message_id=progress_message.message_id,
+            parse_mode="Markdown"
+        )
+
     except Exception as e:
-        await bot.send_message(call.message.chat.id, f"⚠️ Error: {str(e)}")
+        bot.send_message(call.message.chat.id, f"⚠Произошла ошибка: {str(e)}")
     finally:
         if 'video_path' in locals() and os.path.exists(video_path):
             os.remove(video_path)
 
-async def main():
-    await bot.polling(none_stop=True)
-
 if __name__ == '__main__':
     print("Bot is running!")
-    asyncio.run(main())
+    bot.polling(none_stop=True, timeout=600)
